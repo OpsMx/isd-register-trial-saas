@@ -1,0 +1,8 @@
+apiVersion: v1
+data:
+  gateurl: https://isdtrial.canis.isd.opsmx.org/gate/webhooks/webhook/ondemandsaas   # spinnaker gate url
+kind: ConfigMap
+metadata:
+  annotations:
+  name: spinnakerconfig
+  namespace: ns-isd-register-prod
