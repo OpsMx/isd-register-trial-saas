@@ -26,6 +26,12 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Value("${sender.email.password:#{null}}")
     private String pass;
 
+    @Value("${sender.email.host:smtp.gmail.com}")
+    private String host;
+
+    @Value("${sender.email.port:465}")
+    private Integer port;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**");
@@ -47,8 +53,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Bean
     public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.gmail.com");
-        mailSender.setPort(587);
+        mailSender.setHost(host);
+        mailSender.setPort(port);
 
         mailSender.setUsername(email);
         mailSender.setPassword(pass);
@@ -56,7 +62,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.enable", "true");
         props.put("mail.debug", "true");
 
         return mailSender;

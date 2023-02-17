@@ -1,10 +1,18 @@
 automation:
   webhook:
-    url: https://isdgate.canis.isd.opsmx.org/webhooks/webhook/ondemandsaas
+    spinnaker:
+      url: ${SPINNAKER_WEBHOOK_URL}
+    argo:
+      url: ${ARGO_WEBHOOK_URL}
+
+api:
+  key: ${API_KEY}
 sender:
   email:
     username: ${EMAIL_USER}
     password: ${EMAIL_PASS}
+    host: smtp.gmail.com
+    port: 465
   sendTo:
     to: ${EMAIL_TO}
     cc: ${EMAIL_CC}
