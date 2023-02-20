@@ -92,28 +92,11 @@ public class AccountManagerController {
 
             accountSetupService.store(dataSourceRequestModel, cdType);
             log.info("User data saved ");
-            AtomicReference<Boolean> isSpinnakerSetupComplete = new AtomicReference<>(false);
             AtomicReference<DatasourceResponseModel> atomicReference = new AtomicReference<>();
             CompletableFuture.supplyAsync(() -> {
                 atomicReference.set(accountSetupService.setup(dataSourceRequestModel, cdType));
                 return atomicReference;
-            }).orTimeout(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS).whenComplete((result, exception) -> {
-                if(exception != null) {
-                    sendMessage.sendMessageObject(new Message(dataSourceRequestModel.getBusinessEmail(), exception.getMessage()));
-                    return;
-                }
-                DatasourceResponseModel responseModel = atomicReference.get();
-                if(responseModel != null && responseModel.getEventProcessed()){
-                    log.info("Building spinnaker setup for user {} ", dataSourceRequestModel.getBusinessEmail());
-                    isSpinnakerSetupComplete.set(true);
-                    // send message to redirect to login page.
-                    sendMessage.sendMessageObject(new Message(dataSourceRequestModel.getBusinessEmail(), "success"));
-                }else {
-                    log.info("Error building spinnaker for user {}", dataSourceRequestModel.getBusinessEmail());
-                    // send message to redirect to error page.
-                    sendMessage.sendMessageObject(new Message(dataSourceRequestModel.getBusinessEmail(), "failure"));
-                }
-            });
+            }).orTimeout(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS).whenComplete((result, exception) -> log.info("Successfully completed the user registration process"));
             SaasTrialResponseModel saasTrialResponseModel = new SaasTrialResponseModel();
             saasTrialResponseModel.setEventProcessed(true);
             saasTrialResponseModel.setEventId(UUID.randomUUID().toString());

@@ -60,7 +60,6 @@ public class AccountSetupServiceImpl implements AccountSetupService {
     private DatasourceResponseModel triggerWebhook(DatasourceRequestModel datasourceRequestModel, String url) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
         Map<String,String> uriVariables = new HashMap<>();
         uriVariables.put("user", datasourceRequestModel.getBusinessEmail());
         JSONObject user = new JSONObject();
@@ -73,23 +72,26 @@ public class AccountSetupServiceImpl implements AccountSetupService {
         try {
             ResponseEntity<DatasourceResponseModel> responseEntity = this.restTemplate.postForEntity(url,
                     httpEntity, DatasourceResponseModel.class, uriVariables);
-            if(responseEntity != null) {
-                try {
-                    DatasourceResponseModel responseModel = responseEntity.getBody();
-                    if(responseModel != null && responseModel.getEventProcessed()){
-                        log.info("Event trigger ISD register success, event ID = {}", responseModel.getEventId());
-                        return responseModel;
-                    } else {
-                        return datasourceResponseModel;
-                    }
-                } catch (Exception e) {
-                    log.error("Exception in triggering ISD register event {}",e.getMessage());
-                }
+            if(responseEntity.getStatusCode().is2xxSuccessful()) {
+                return getDatasourceResponseModel(datasourceResponseModel, responseEntity);
             }else {
-                log.error("Trigger ISD register event failed");
+                log.error("Trigger ISD register event failed : {}", responseEntity.toString());
             }
         }catch (Exception e){
-            log.error("Exception in ISD register event triggering {}", e.getMessage());
+            log.error("Exception in ISD register event triggering : {}", e);
+        }
+        return datasourceResponseModel;
+    }
+
+    private DatasourceResponseModel getDatasourceResponseModel(DatasourceResponseModel datasourceResponseModel, ResponseEntity<DatasourceResponseModel> responseEntity) {
+        try {
+            DatasourceResponseModel responseModel = responseEntity.getBody();
+            if(responseModel != null && responseModel.getEventProcessed()){
+                log.info("Event trigger ISD register success, event ID : {}", responseModel.getEventId());
+                return responseModel;
+            }
+        } catch (Exception e) {
+            log.error("Exception in triggering ISD register event {}", e);
         }
         return datasourceResponseModel;
     }

@@ -40,7 +40,7 @@ public class User {
     @NotBlank(message = "Email is mandatory")
     private String businessEmail;
 
-    @Column(nullable = false)
+    @Column
     @Enumerated(EnumType.STRING)
     private CDType cdType = CDType.isdSpinnaker;
 
