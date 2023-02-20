@@ -1,5 +1,6 @@
 package com.opsmx.isd.register.entities;
 
+import com.opsmx.isd.register.enums.CDType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -9,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -38,11 +40,15 @@ public class User {
     @NotBlank(message = "Email is mandatory")
     private String businessEmail;
 
+    @Column
+    @Enumerated(EnumType.STRING)
+    private CDType cdType = CDType.isdSpinnaker;
+
     @CreationTimestamp
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     public User(String firstName, String lastName, String companyName, String contactNumber, String businessEmail) {
         this.firstName = firstName;

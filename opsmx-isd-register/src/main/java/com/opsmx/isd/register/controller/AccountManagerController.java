@@ -4,6 +4,7 @@ import com.opsmx.isd.register.dto.DatasourceRequestModel;
 import com.opsmx.isd.register.dto.DatasourceResponseModel;
 import com.opsmx.isd.register.dto.Message;
 import com.opsmx.isd.register.dto.SaasTrialResponseModel;
+import com.opsmx.isd.register.enums.CDType;
 import com.opsmx.isd.register.service.AccountSetupService;
 import com.opsmx.isd.register.service.SendMessage;
 import com.opsmx.isd.register.util.Util;
@@ -67,6 +68,35 @@ public class AccountManagerController {
                     sendMessage.sendMessageObject(new Message(dataSourceRequestModel.getBusinessEmail(), "failure"));
                 }
             });
+            SaasTrialResponseModel saasTrialResponseModel = new SaasTrialResponseModel();
+            saasTrialResponseModel.setEventProcessed(true);
+            saasTrialResponseModel.setEventId(UUID.randomUUID().toString());
+            return new ResponseEntity<>(saasTrialResponseModel, HttpStatus.CREATED);
+        }catch (Exception e){
+            SaasTrialResponseModel saasTrialResponseModel = new SaasTrialResponseModel();
+            saasTrialResponseModel.setEventProcessed(false);
+            saasTrialResponseModel.setEventId(UUID.randomUUID().toString());
+            return new ResponseEntity<>(saasTrialResponseModel, HttpStatus.CONFLICT);
+        }
+    }
+
+
+    @CrossOrigin(origins = "*")
+    @PostMapping(value = "/webhookTrigger/{cdType}", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<SaasTrialResponseModel> cdWebhookTrigger(@Valid @RequestBody DatasourceRequestModel dataSourceRequestModel,
+                                                                   @PathVariable(name = "cdType") CDType cdType) {
+
+        try {
+            log.info("Request received to trigger the webhook for the cd type : {} {}", cdType.name(), dataSourceRequestModel.toString());
+
+            accountSetupService.store(dataSourceRequestModel, cdType);
+            log.info("User data saved ");
+            AtomicReference<DatasourceResponseModel> atomicReference = new AtomicReference<>();
+            CompletableFuture.supplyAsync(() -> {
+                atomicReference.set(accountSetupService.setup(dataSourceRequestModel, cdType));
+                return atomicReference;
+            }).orTimeout(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS).whenComplete((result, exception) -> log.info("Successfully completed the user registration process"));
             SaasTrialResponseModel saasTrialResponseModel = new SaasTrialResponseModel();
             saasTrialResponseModel.setEventProcessed(true);
             saasTrialResponseModel.setEventId(UUID.randomUUID().toString());

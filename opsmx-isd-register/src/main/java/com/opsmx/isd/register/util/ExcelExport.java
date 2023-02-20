@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -107,6 +108,7 @@ public abstract class ExcelExport implements DownloadableFile {
 
     protected void addDataToWorkbook(Workbook workbook, int columns, int rows, List<User> userList) {
         Long sheetStartTime = System.currentTimeMillis();
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss.S");
         logger.info("start sheet generation");
         Sheet dataSheet = workbook.createSheet("Data");
         Row row = dataSheet.createRow(0);
@@ -126,6 +128,8 @@ public abstract class ExcelExport implements DownloadableFile {
         cell.setCellValue("Created At");
         cell = row.createCell(7);
         cell.setCellValue("Updated At");
+        cell = row.createCell(8);
+        cell.setCellValue("CD Type");
         for (int i = 0; i < userList.size(); i++) {
             row = dataSheet.createRow(i+1);
             cell = row.createCell(0);
@@ -141,11 +145,11 @@ public abstract class ExcelExport implements DownloadableFile {
             cell = row.createCell(5);
             cell.setCellValue(userList.get(i).getBusinessEmail());
             cell = row.createCell(6);
-            cell.setCellValue(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.S").format(userList.get(i)
-                    .getCreatedAt()));
+            cell.setCellValue(userList.get(i).getCreatedAt().format(format));
             cell = row.createCell(7);
-            cell.setCellValue(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.S").format(userList.get(i)
-                    .getUpdatedAt()));
+            cell.setCellValue(userList.get(i).getUpdatedAt().format(format));
+            cell = row.createCell(8);
+            cell.setCellValue(userList.get(i).getCdType().name());
 //            for (int j = 0; j < 8; j++) {
 //                Cell cell = row.createCell(j);
 //                cell.setCellValue(new CellReference(cell).formatAsString());

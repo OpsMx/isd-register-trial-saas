@@ -2,6 +2,8 @@ package com.opsmx.isd.register.service;
 
 import com.opsmx.isd.register.dto.DatasourceRequestModel;
 import com.opsmx.isd.register.dto.DatasourceResponseModel;
+import com.opsmx.isd.register.entities.User;
+import com.opsmx.isd.register.enums.CDType;
 import com.opsmx.isd.register.repositories.UserRepository;
 import com.opsmx.isd.register.util.Util;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +27,11 @@ import java.util.UUID;
 @Slf4j
 public class AccountSetupServiceImpl implements AccountSetupService {
 
-    @Value("${automation.webhook.url:#{null}}")
-    private String automationWebhookURL;
+    @Value("${automation.webhook.spinnaker.url:#{null}}")
+    private String spinnakerAutomationWebhookURL;
+
+    @Value("${automation.webhook.argo.url:#{null}}")
+    private String argoAutomationWebhookURL;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -40,11 +45,21 @@ public class AccountSetupServiceImpl implements AccountSetupService {
     }
 
     @Override
+    public void store(DatasourceRequestModel datasourceRequestModel, CDType cdType) {
+
+        User user = Util.toUser(datasourceRequestModel);
+        user.setCdType(cdType);
+        userRepository.save(user);
+    }
+
+    @Override
     public DatasourceResponseModel setup(DatasourceRequestModel datasourceRequestModel){
+        return triggerWebhook(datasourceRequestModel, spinnakerAutomationWebhookURL);
+    }
+
+    private DatasourceResponseModel triggerWebhook(DatasourceRequestModel datasourceRequestModel, String url) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String url = automationWebhookURL;
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
         Map<String,String> uriVariables = new HashMap<>();
         uriVariables.put("user", datasourceRequestModel.getBusinessEmail());
         JSONObject user = new JSONObject();
@@ -57,25 +72,39 @@ public class AccountSetupServiceImpl implements AccountSetupService {
         try {
             ResponseEntity<DatasourceResponseModel> responseEntity = this.restTemplate.postForEntity(url,
                     httpEntity, DatasourceResponseModel.class, uriVariables);
-            if(responseEntity != null) {
-                try {
-                    DatasourceResponseModel responseModel = responseEntity.getBody();
-                    if(responseModel != null && responseModel.getEventProcessed()){
-                        log.info("Event trigger ISD register success, event ID = {}", responseModel.getEventId());
-                        return responseModel;
-                    } else {
-                        return datasourceResponseModel;
-                    }
-                } catch (Exception e) {
-                    log.error("Exception in triggering ISD register event {}",e.getMessage());
-                }
+            if(responseEntity.getStatusCode().is2xxSuccessful()) {
+                return getDatasourceResponseModel(datasourceResponseModel, responseEntity);
             }else {
-                log.error("Trigger ISD register event failed");
+                log.error("Trigger ISD register event failed : {}", responseEntity.toString());
             }
         }catch (Exception e){
-            log.error("Exception in ISD register event triggering {}", e.getMessage());
+            log.error("Exception in ISD register event triggering : {}", e);
         }
         return datasourceResponseModel;
+    }
+
+    private DatasourceResponseModel getDatasourceResponseModel(DatasourceResponseModel datasourceResponseModel, ResponseEntity<DatasourceResponseModel> responseEntity) {
+        try {
+            DatasourceResponseModel responseModel = responseEntity.getBody();
+            if(responseModel != null && responseModel.getEventProcessed()){
+                log.info("Event trigger ISD register success, event ID : {}", responseModel.getEventId());
+                return responseModel;
+            }
+        } catch (Exception e) {
+            log.error("Exception in triggering ISD register event {}", e);
+        }
+        return datasourceResponseModel;
+    }
+
+    @Override
+    public DatasourceResponseModel setup(DatasourceRequestModel datasourceRequestModel, CDType cdType) {
+
+        if (cdType.equals(CDType.isdSpinnaker))
+            return triggerWebhook(datasourceRequestModel, spinnakerAutomationWebhookURL);
+        else if(cdType.equals(CDType.isdArgo))
+            return triggerWebhook(datasourceRequestModel, argoAutomationWebhookURL);
+
+        return null;
     }
 }
 
