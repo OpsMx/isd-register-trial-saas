@@ -128,6 +128,8 @@ public abstract class ExcelExport implements DownloadableFile {
         cell.setCellValue("Created At");
         cell = row.createCell(7);
         cell.setCellValue("Updated At");
+        cell = row.createCell(8);
+        cell.setCellValue("CD Type");
         for (int i = 0; i < userList.size(); i++) {
             row = dataSheet.createRow(i+1);
             cell = row.createCell(0);
@@ -146,6 +148,8 @@ public abstract class ExcelExport implements DownloadableFile {
             cell.setCellValue(userList.get(i).getCreatedAt().format(format));
             cell = row.createCell(7);
             cell.setCellValue(userList.get(i).getUpdatedAt().format(format));
+            cell = row.createCell(8);
+            cell.setCellValue(userList.get(i).getCdType().name());
 //            for (int j = 0; j < 8; j++) {
 //                Cell cell = row.createCell(j);
 //                cell.setCellValue(new CellReference(cell).formatAsString());
