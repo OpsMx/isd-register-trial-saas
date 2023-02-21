@@ -90,16 +90,21 @@ public class AccountManagerController {
         try {
             log.info("Request received to trigger the webhook for the cd type : {} {}", cdType.name(), dataSourceRequestModel.toString());
 
+            SaasTrialResponseModel saasTrialResponseModel = new SaasTrialResponseModel();
             accountSetupService.store(dataSourceRequestModel, cdType);
-            log.info("User data saved ");
             AtomicReference<DatasourceResponseModel> atomicReference = new AtomicReference<>();
             CompletableFuture.supplyAsync(() -> {
                 atomicReference.set(accountSetupService.setup(dataSourceRequestModel, cdType));
                 return atomicReference;
-            }).orTimeout(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS).whenComplete((result, exception) -> log.info("Successfully completed the user registration process"));
-            SaasTrialResponseModel saasTrialResponseModel = new SaasTrialResponseModel();
-            saasTrialResponseModel.setEventProcessed(true);
+            }).orTimeout(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS).whenComplete((result, exception) -> {
+                if(exception != null) {
+                    log.error("User registration failed : {}", exception);
+                    return;
+                }
+                log.info("Successfully completed the user registration process");
+            });
             saasTrialResponseModel.setEventId(UUID.randomUUID().toString());
+            saasTrialResponseModel.setEventProcessed(Boolean.TRUE);
             return new ResponseEntity<>(saasTrialResponseModel, HttpStatus.CREATED);
         }catch (Exception e){
             SaasTrialResponseModel saasTrialResponseModel = new SaasTrialResponseModel();

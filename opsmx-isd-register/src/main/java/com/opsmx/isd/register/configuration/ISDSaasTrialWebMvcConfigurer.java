@@ -37,14 +37,27 @@ public class ISDSaasTrialWebMvcConfigurer implements WebMvcConfigurer {
         if (cdTypes.isEmpty()){
             log.debug("inside if block");
             populateCdTypes();
+            addNotNullConstraints();
+            userRepository.dropBusinessEmailUniqueConstraint();
         } else if (cdTypes.get().stream().anyMatch(Objects::isNull)){
             log.debug("inside else if block");
             populateCdTypes();
+            addNotNullConstraints();
+            userRepository.dropBusinessEmailUniqueConstraint();
         }
     }
 
     private void populateCdTypes() {
         userRepository.updateCdType(CDType.isdSpinnaker);
-        userRepository.addNotNullConstraint();
+    }
+
+    private void addNotNullConstraints() {
+
+        userRepository.addNotNullConstraintOnCDType();
+        userRepository.addNotNullConstraintOnBusinessEmail();
+        userRepository.addNotNullConstraintOnCompanyName();
+        userRepository.addNotNullConstraintOnContactNumber();
+        userRepository.addNotNullConstraintOnFirstName();
+        userRepository.addNotNullConstraintOnLastName();
     }
 }

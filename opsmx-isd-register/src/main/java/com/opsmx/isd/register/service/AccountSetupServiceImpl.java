@@ -19,9 +19,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service("AccountSetupService-v1")
 @Slf4j
@@ -47,9 +47,13 @@ public class AccountSetupServiceImpl implements AccountSetupService {
     @Override
     public void store(DatasourceRequestModel datasourceRequestModel, CDType cdType) {
 
-        User user = Util.toUser(datasourceRequestModel);
-        user.setCdType(cdType);
-        userRepository.save(user);
+        userRepository.findByBusinessEmailAndCdType(datasourceRequestModel.getBusinessEmail(), cdType)
+                .ifPresentOrElse(users -> log.info("User already exists with same email id : {}", users.get(0).getBusinessEmail()),
+                        () -> {
+                        User user = Util.toUser(datasourceRequestModel);
+                        user.setCdType(cdType);
+                        userRepository.save(user);
+                        log.info("User data saved "); });
     }
 
     @Override
@@ -79,6 +83,7 @@ public class AccountSetupServiceImpl implements AccountSetupService {
             }
         }catch (Exception e){
             log.error("Exception in ISD register event triggering : {}", e);
+            throw e;
         }
         return datasourceResponseModel;
     }
