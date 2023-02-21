@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    List<User> findByBusinessEmail(String businessEmail);
+    Optional<List<User>> findByBusinessEmailAndCdType(String businessEmail, CDType cdType);
     List<User> findAllByCreatedAtBetween(Date createdAtStart, Date createdAtEnd);
     Optional<List<User>> findAllByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
@@ -31,5 +31,36 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
     @Transactional
     @Query(value = "alter table users alter column cd_type set not null", nativeQuery = true)
-    void addNotNullConstraint();
+    void addNotNullConstraintOnCDType();
+
+    @Modifying
+    @Transactional
+    @Query(value = "alter table users alter column business_email set not null", nativeQuery = true)
+    void addNotNullConstraintOnBusinessEmail();
+
+    @Modifying
+    @Transactional
+    @Query(value = "alter table users alter column company_name set not null", nativeQuery = true)
+    void addNotNullConstraintOnCompanyName();
+
+    @Modifying
+    @Transactional
+    @Query(value = "alter table users alter column contact_number set not null", nativeQuery = true)
+    void addNotNullConstraintOnContactNumber();
+
+    @Modifying
+    @Transactional
+    @Query(value = "alter table users alter column first_name set not null", nativeQuery = true)
+    void addNotNullConstraintOnFirstName();
+
+    @Modifying
+    @Transactional
+    @Query(value = "alter table users alter column last_name set not null", nativeQuery = true)
+    void addNotNullConstraintOnLastName();
+
+    @Modifying
+    @Transactional
+    @Query(value = "ALTER TABLE users DROP CONSTRAINT IF EXISTS uk_b9nwfqo68so84l81wo4wmnf9b", nativeQuery = true)
+    void dropBusinessEmailUniqueConstraint();
+
 }
