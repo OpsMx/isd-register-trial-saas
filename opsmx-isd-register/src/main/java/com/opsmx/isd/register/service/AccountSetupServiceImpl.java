@@ -33,7 +33,8 @@ public class AccountSetupServiceImpl implements AccountSetupService {
     @Value("${automation.webhook.argo.url:#{null}}")
     private String argoAutomationWebhookURL;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Autowired
     private UserRepository userRepository;
