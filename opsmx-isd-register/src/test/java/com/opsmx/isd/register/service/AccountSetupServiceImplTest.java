@@ -64,6 +64,7 @@ public class AccountSetupServiceImplTest {
 
         Mockito.when(userRepository.findByBusinessEmailAndCdType(datasourceRequestModel.getBusinessEmail(), CDType.isdArgo)).thenReturn(Optional.empty());
         accountSetupService.store(datasourceRequestModel, CDType.isdArgo);
+        Mockito.verify(accountSetupService, Mockito.times(1)).store(datasourceRequestModel, CDType.isdArgo);
     }
 
     @Test
@@ -72,6 +73,7 @@ public class AccountSetupServiceImplTest {
 
         Mockito.when(userRepository.findByBusinessEmailAndCdType(datasourceRequestModel.getBusinessEmail(), CDType.isdSpinnaker)).thenReturn(Optional.empty());
         accountSetupService.store(datasourceRequestModel, CDType.isdSpinnaker);
+        Mockito.verify(accountSetupService, Mockito.times(1)).store(datasourceRequestModel, CDType.isdSpinnaker);
     }
 
     @Test
@@ -92,6 +94,7 @@ public class AccountSetupServiceImplTest {
 
         Mockito.when(userRepository.findByBusinessEmailAndCdType(datasourceRequestModel.getBusinessEmail(), CDType.isdArgo)).thenReturn(Optional.of(users));
         accountSetupService.store(datasourceRequestModel, CDType.isdArgo);
+        Mockito.verify(accountSetupService, Mockito.times(1)).store(datasourceRequestModel, CDType.isdArgo);
     }
 
     @Test
@@ -112,6 +115,7 @@ public class AccountSetupServiceImplTest {
 
         Mockito.when(userRepository.findByBusinessEmailAndCdType(datasourceRequestModel.getBusinessEmail(), CDType.isdSpinnaker)).thenReturn(Optional.of(users));
         accountSetupService.store(datasourceRequestModel, CDType.isdSpinnaker);
+        Mockito.verify(accountSetupService, Mockito.times(1)).store(datasourceRequestModel, CDType.isdSpinnaker);
     }
 
     @Test
